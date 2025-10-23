@@ -394,23 +394,46 @@ const EmployeesLocal = () => {
               {employees.map((emp) => (
                 <div
                   key={emp.id}
-                  onClick={() => setSelectedEmployee(emp)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                  className={`p-3 rounded-lg transition-colors ${
                     selectedEmployee?.id === emp.id
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar>
+                    <Avatar className="cursor-pointer" onClick={() => setSelectedEmployee(emp)}>
                       <AvatarImage src={emp.avatarUrl} />
                       <AvatarFallback>{emp.fullName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 cursor-pointer" onClick={() => setSelectedEmployee(emp)}>
                       <p className="font-medium">{emp.fullName}</p>
                       <p className="text-xs opacity-70">
                         {roleLabels[emp.role || "viewer"]?.split(" - ")[0] || "مراقب"}
                       </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEmployee(emp);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteEmployee(emp.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
