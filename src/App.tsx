@@ -8,9 +8,9 @@ import Cashier from "./pages/Cashier";
 import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
 import CompanySettings from "./pages/CompanySettings";
-import Employees from "./pages/Employees";
-import EmployeeStats from "./pages/EmployeeStats";
-import Expenses from "./pages/Expenses";
+import EmployeesLocal from "./pages/EmployeesLocal";
+import EmployeeStatsNew from "./pages/EmployeeStatsNew";
+import ExpensesLocal from "./pages/ExpensesLocal";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -77,7 +77,7 @@ function App() {
                 path="/employees"
                 element={
                   <ProtectedRoute>
-                    <Employees />
+                    <EmployeesLocal />
                   </ProtectedRoute>
                 }
               />
@@ -85,7 +85,7 @@ function App() {
                 path="/employee-stats"
                 element={
                   <ProtectedRoute>
-                    <EmployeeStats />
+                    <EmployeeStatsNew />
                   </ProtectedRoute>
                 }
               />
@@ -93,7 +93,7 @@ function App() {
                 path="/expenses"
                 element={
                   <ProtectedRoute>
-                    <Expenses />
+                    <ExpensesLocal />
                   </ProtectedRoute>
                 }
               />

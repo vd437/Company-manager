@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/AppLayout";
 import { Building2, ArrowRight, Upload, Eye } from "lucide-react";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -54,39 +53,17 @@ const CompanySettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from("company_settings" as any)
-        .select("*")
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setSettings(data as unknown as CompanySettings);
-        localStorage.setItem("companySettings", JSON.stringify(data));
-      } else {
-        const localData = localStorage.getItem("companySettings");
-        if (localData) {
-          setSettings(JSON.parse(localData));
-        }
+      const localData = localStorage.getItem("companySettings");
+      if (localData) {
+        setSettings(JSON.parse(localData));
       }
       
-      // Load privacy settings from localStorage
       const savedPrivacy = localStorage.getItem("invoicePrivacySettings");
       if (savedPrivacy) {
         setPrivacySettings(JSON.parse(savedPrivacy));
       }
     } catch (error: any) {
       console.error("Error fetching settings:", error);
-      const localData = localStorage.getItem("companySettings");
-      if (localData) {
-        setSettings(JSON.parse(localData));
-      }
-      const savedPrivacy = localStorage.getItem("invoicePrivacySettings");
-      if (savedPrivacy) {
-        setPrivacySettings(JSON.parse(savedPrivacy));
-      }
       toast({
         title: "خطأ في تحميل الإعدادات",
         description: error.message,
@@ -106,36 +83,11 @@ const CompanySettings = () => {
       // Save privacy settings to localStorage
       localStorage.setItem("invoicePrivacySettings", JSON.stringify(privacySettings));
 
-      if (settings.id) {
-        const { error } = await supabase
-          .from("company_settings" as any)
-          .update({
-            company_name: settings.company_name,
-            logo_url: settings.logo_url,
-            address: settings.address,
-            phone: settings.phone,
-            email: settings.email,
-            tax_number: settings.tax_number,
-            updated_at: new Date().toISOString(),
-          } as any)
-          .eq("id", settings.id);
-
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from("company_settings" as any)
-          .insert([settings] as any)
-          .select()
-          .single();
-
-        if (error) throw error;
-        setSettings(data as unknown as CompanySettings);
-        localStorage.setItem("companySettings", JSON.stringify(data));
-      }
-
       toast({
         title: "تم حفظ الإعدادات بنجاح",
       });
+      
+      navigate("/settings");
     } catch (error: any) {
       toast({
         title: "خطأ في حفظ الإعدادات",
@@ -184,36 +136,6 @@ const CompanySettings = () => {
         setIsSaving(false);
       };
       reader.readAsDataURL(file);
-
-      try {
-        if (settings.logo_url && settings.logo_url.includes('supabase')) {
-          const oldFileName = settings.logo_url.split('/').pop();
-          if (oldFileName) {
-            await supabase.storage
-              .from("employee-avatars")
-              .remove([oldFileName]);
-          }
-        }
-
-        const fileExt = file.name.split(".").pop();
-        const fileName = `company-logo-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("employee-avatars")
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from("employee-avatars")
-            .getPublicUrl(fileName);
-
-          setSettings({ ...settings, logo_url: urlData.publicUrl });
-        }
-      } catch (storageError) {
-        console.log("Storage upload failed, using data URL instead:", storageError);
-      }
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({

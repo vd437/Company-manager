@@ -22,12 +22,19 @@ const Settings = () => {
     language: "ar",
     theme: "light",
   });
+  const [companySettings, setCompanySettings] = useState<any>(null);
 
   useEffect(() => {
     // Load settings from localStorage on mount
     const savedSettings = localStorage.getItem("appSettings");
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
+    }
+    
+    // Load company settings
+    const savedCompany = localStorage.getItem("companySettings");
+    if (savedCompany) {
+      setCompanySettings(JSON.parse(savedCompany));
     }
   }, []);
 
@@ -110,13 +117,31 @@ const Settings = () => {
           <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/company-settings")}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  إعدادات الشركة
+                <div className="flex items-center gap-3">
+                  {companySettings?.logo_url && (
+                    <img 
+                      src={companySettings.logo_url} 
+                      alt="Company Logo" 
+                      className="h-10 w-10 object-contain rounded"
+                    />
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      {companySettings?.company_name || "إعدادات الشركة"}
+                    </div>
+                    {companySettings?.company_name && (
+                      <p className="text-sm text-muted-foreground font-normal mt-1">
+                        انقر لتعديل معلومات الشركة
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <ArrowLeft className="h-5 w-5" />
               </CardTitle>
-              <CardDescription>إدارة معلومات الشركة والشعار الذي يظهر في الفواتير</CardDescription>
+              {!companySettings && (
+                <CardDescription>إدارة معلومات الشركة والشعار الذي يظهر في الفواتير</CardDescription>
+              )}
             </CardHeader>
           </Card>
 

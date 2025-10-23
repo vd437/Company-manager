@@ -396,18 +396,18 @@ const Sales = () => {
   return (
     <AppLayout>
       <div className="space-y-6" dir="rtl">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">{t("salesHistory")}</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => navigate("/dashboard")} size="sm">
               <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
               {t("back")}
             </Button>
-            <Button variant="outline" onClick={exportToCSV}>
+            <Button variant="outline" onClick={exportToCSV} size="sm">
               <Download className="ml-2 h-4 w-4" />
               {t("exportCSV")}
             </Button>
-            <Button variant="outline" onClick={printSalesReport}>
+            <Button variant="outline" onClick={printSalesReport} size="sm">
               <Printer className="ml-2 h-4 w-4" />
               {t("printReport")}
             </Button>

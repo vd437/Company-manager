@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/helpers";
 import { Sale } from "@/lib/types";
 
@@ -41,30 +40,9 @@ export const InvoicePrint = ({ sale, onClose }: InvoicePrintProps) => {
 
   const fetchCompanySettings = async () => {
     try {
-      // Try loading from localStorage first
       const localData = localStorage.getItem("companySettings");
       if (localData) {
-        console.log("Loading company settings from localStorage");
         setCompanySettings(JSON.parse(localData));
-      }
-
-      // Then try loading from Supabase
-      const { data, error } = await supabase
-        .from("company_settings" as any)
-        .select("*")
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching company settings:", error);
-        return;
-      }
-      
-      if (data) {
-        console.log("Company settings loaded from database:", data);
-        setCompanySettings(data as unknown as CompanySettings);
-      } else if (!localData) {
-        console.log("No company settings found");
       }
     } catch (error) {
       console.error("Error fetching company settings:", error);

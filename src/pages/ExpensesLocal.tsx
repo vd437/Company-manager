@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, DollarSign, TrendingDown, Calendar, User, Package, ArrowRight } from "lucide-react";
+import { Plus, DollarSign, TrendingDown, Calendar, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,15 +30,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Expense } from "@/lib/types";
 import AppLayout from "@/components/AppLayout";
 import { formatCurrency } from "@/lib/helpers";
+import { fakeDb } from "@/lib/fakeDb";
 
-const Expenses = () => {
+interface LocalExpense {
+  id: string;
+  expense_type: 'salary' | 'product_cost' | 'rent' | 'utilities' | 'other';
+  amount: number;
+  description?: string;
+  employee_id?: number;
+  product_id?: number;
+  date: string;
+}
+
+const ExpensesLocal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expenses, setExpenses] = useState<LocalExpense[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,15 +75,15 @@ const Expenses = () => {
     fetchProducts();
   }, []);
 
-  const fetchExpenses = async () => {
+  const fetchExpenses = () => {
     try {
-      const { data, error } = await supabase
-        .from("expenses" as any)
-        .select("*")
-        .order("date", { ascending: false });
-
-      if (error) throw error;
-      setExpenses((data || []) as unknown as Expense[]);
+      const stored = localStorage.getItem("expenses");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setExpenses(parsed.sort((a: LocalExpense, b: LocalExpense) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        ));
+      }
     } catch (error: any) {
       toast({
         title: "خطأ في تحميل المصروفات",
@@ -86,12 +95,8 @@ const Expenses = () => {
 
   const fetchEmployees = async () => {
     try {
-      const { data, error } = await supabase
-        .from("employees" as any)
-        .select("*");
-
-      if (error) throw error;
-      setEmployees(data || []);
+      const empList = await fakeDb.employees.findAll();
+      setEmployees(empList);
     } catch (error: any) {
       console.error("Error fetching employees:", error);
     }
@@ -99,18 +104,14 @@ const Expenses = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from("products" as any)
-        .select("*");
-
-      if (error) throw error;
-      setProducts(data || []);
+      const prodList = await fakeDb.products.findAll();
+      setProducts(prodList);
     } catch (error: any) {
       console.error("Error fetching products:", error);
     }
   };
 
-  const handleAddExpense = async () => {
+  const handleAddExpense = () => {
     if (!newExpense.amount) {
       toast({
         title: "خطأ",
@@ -122,24 +123,19 @@ const Expenses = () => {
 
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      const expenseData = {
+      const expenseData: LocalExpense = {
+        id: `exp-${Date.now()}`,
         expense_type: newExpense.expense_type,
         amount: parseFloat(newExpense.amount),
-        description: newExpense.description || null,
-        employee_id: newExpense.employee_id || null,
-        product_id: newExpense.product_id ? parseInt(newExpense.product_id) : null,
+        description: newExpense.description || undefined,
+        employee_id: newExpense.employee_id ? parseInt(newExpense.employee_id) : undefined,
+        product_id: newExpense.product_id ? parseInt(newExpense.product_id) : undefined,
         date: newExpense.date,
-        created_by: user.id,
       };
 
-      const { error } = await supabase
-        .from("expenses" as any)
-        .insert([expenseData] as any);
-
-      if (error) throw error;
+      const updatedExpenses = [expenseData, ...expenses];
+      localStorage.setItem("expenses", JSON.stringify(updatedExpenses));
+      setExpenses(updatedExpenses);
 
       toast({
         title: "تم إضافة المصروف بنجاح",
@@ -154,7 +150,6 @@ const Expenses = () => {
         date: new Date().toISOString().split("T")[0],
       });
       setShowAddDialog(false);
-      fetchExpenses();
     } catch (error: any) {
       toast({
         title: "خطأ في إضافة المصروف",
@@ -258,8 +253,8 @@ const Expenses = () => {
                         </SelectTrigger>
                         <SelectContent>
                           {employees.map((emp) => (
-                            <SelectItem key={emp.id} value={emp.id}>
-                              {emp.full_name}
+                            <SelectItem key={emp.id} value={emp.id.toString()}>
+                              {emp.fullName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -425,4 +420,4 @@ const Expenses = () => {
   );
 };
 
-export default Expenses;
+export default ExpensesLocal;
