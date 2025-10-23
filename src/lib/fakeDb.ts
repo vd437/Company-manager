@@ -1,15 +1,11 @@
-
 import { Product, Sale, SalesSummary, TopProduct, User, Employee } from "./types";
 
-// Simulated database with in-memory data storage
+// Enhanced database with localStorage persistence
 class FakeDB {
   // Private data arrays with underscore prefix to avoid naming conflicts
   private _users: User[] = [];
-
   private _products: Product[] = [];
-
   private _sales: Sale[] = [];
-
   private _employees: Employee[] = [];
 
   private lastIds = {
@@ -18,6 +14,56 @@ class FakeDB {
     sale: 0,
     employee: 0,
   };
+
+  constructor() {
+    this.loadFromLocalStorage();
+  }
+
+  // Load all data from localStorage
+  private loadFromLocalStorage() {
+    try {
+      const users = localStorage.getItem('db_users');
+      const products = localStorage.getItem('db_products');
+      const sales = localStorage.getItem('db_sales');
+      const employees = localStorage.getItem('db_employees');
+      const lastIds = localStorage.getItem('db_lastIds');
+
+      if (users) this._users = JSON.parse(users);
+      if (products) this._products = JSON.parse(products);
+      if (sales) this._sales = JSON.parse(sales);
+      if (employees) this._employees = JSON.parse(employees);
+      if (lastIds) this.lastIds = JSON.parse(lastIds);
+
+      // Initialize default admin user if no users exist
+      if (this._users.length === 0) {
+        this._users.push({
+          id: 1,
+          name: "المدير",
+          email: "admin@example.com",
+          password: "admin123",
+          role: "admin",
+          createdAt: new Date().toISOString(),
+        });
+        this.lastIds.user = 1;
+        this.saveToLocalStorage();
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+    }
+  }
+
+  // Save all data to localStorage
+  private saveToLocalStorage() {
+    try {
+      localStorage.setItem('db_users', JSON.stringify(this._users));
+      localStorage.setItem('db_products', JSON.stringify(this._products));
+      localStorage.setItem('db_sales', JSON.stringify(this._sales));
+      localStorage.setItem('db_employees', JSON.stringify(this._employees));
+      localStorage.setItem('db_lastIds', JSON.stringify(this.lastIds));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  }
 
   // Helper to generate random dates for demo data
   private getRandomDate(daysBack: number): string {
@@ -39,6 +85,7 @@ class FakeDB {
       const id = ++this.lastIds.user;
       const newUser = { ...userData, id };
       this._users.push(newUser);
+      this.saveToLocalStorage();
       return newUser;
     },
   };
@@ -59,6 +106,7 @@ class FakeDB {
       const id = ++this.lastIds.user;
       const newUser = { ...userData, id };
       this._users.push(newUser);
+      this.saveToLocalStorage();
       return newUser;
     }
   };
@@ -80,6 +128,7 @@ class FakeDB {
       const id = ++this.lastIds.product;
       const newProduct = { ...productData, id } as Product;
       this._products.push(newProduct);
+      this.saveToLocalStorage();
       return newProduct;
     },
 
@@ -92,12 +141,14 @@ class FakeDB {
 
       const updatedProduct = { ...productData, id };
       this._products[index] = updatedProduct;
+      this.saveToLocalStorage();
       return updatedProduct;
     },
 
     remove: async (id: number): Promise<boolean> => {
       const initialLength = this._products.length;
       this._products = this._products.filter((p) => p.id !== id);
+      this.saveToLocalStorage();
       return this._products.length !== initialLength;
     },
 
@@ -126,6 +177,7 @@ class FakeDB {
       };
 
       this._products[index] = updatedProduct;
+      this.saveToLocalStorage();
       return updatedProduct;
     },
   };
@@ -151,6 +203,7 @@ class FakeDB {
       await this.products.updateStock(saleData.productId, saleData.quantity);
 
       this._sales.push(newSale);
+      this.saveToLocalStorage();
       return newSale;
     },
 
@@ -292,6 +345,7 @@ class FakeDB {
         updatedAt: now,
       } as Employee;
       this._employees.push(newEmployee);
+      this.saveToLocalStorage();
       return newEmployee;
     },
 
@@ -308,12 +362,14 @@ class FakeDB {
         updatedAt: new Date().toISOString(),
       };
       this._employees[index] = updatedEmployee;
+      this.saveToLocalStorage();
       return updatedEmployee;
     },
 
     remove: async (id: number): Promise<boolean> => {
       const initialLength = this._employees.length;
       this._employees = this._employees.filter((e) => e.id !== id);
+      this.saveToLocalStorage();
       return this._employees.length !== initialLength;
     },
 
