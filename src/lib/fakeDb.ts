@@ -36,15 +36,31 @@ class FakeDB {
 
       // Initialize default admin user if no users exist
       if (this._users.length === 0) {
-        this._users.push({
+        const adminUser: User = {
           id: 1,
           name: "المدير",
           email: "admin@example.com",
           password: "admin123",
           role: "admin",
           createdAt: new Date().toISOString(),
-        });
+        };
+        this._users.push(adminUser);
         this.lastIds.user = 1;
+        
+        // Create corresponding employee record for admin
+        const adminEmployee: Employee = {
+          id: 1,
+          userId: 1,
+          fullName: "المدير",
+          email: "admin@example.com",
+          baseSalary: 0,
+          role: "admin",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        this._employees.push(adminEmployee);
+        this.lastIds.employee = 1;
+        
         this.saveToLocalStorage();
       }
     } catch (error) {
@@ -356,12 +372,31 @@ class FakeDB {
       const index = this._employees.findIndex((e) => e.id === id);
       if (index === -1) return null;
 
+      const employee = this._employees[index];
+      
+      // CRITICAL: Protect admin user (userId 1) from role changes
+      if (employee.userId === 1 && employeeData.role && employeeData.role !== "admin") {
+        throw new Error("لا يمكن تغيير صلاحيات المدير الأساسي");
+      }
+
       const updatedEmployee = {
-        ...this._employees[index],
+        ...employee,
         ...employeeData,
         updatedAt: new Date().toISOString(),
       };
       this._employees[index] = updatedEmployee;
+      
+      // Also update the role in the users array if role changed
+      if (employeeData.role && employee.userId) {
+        const userIndex = this._users.findIndex((u) => u.id === employee.userId);
+        if (userIndex !== -1) {
+          this._users[userIndex] = {
+            ...this._users[userIndex],
+            role: employeeData.role,
+          };
+        }
+      }
+      
       this.saveToLocalStorage();
       return updatedEmployee;
     },
