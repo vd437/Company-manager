@@ -32,14 +32,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const user = JSON.parse(savedUser);
       // Get employee data to fetch role
       fakeDb.employees.findByUserId(user.id).then(employee => {
-        if (employee) {
-          setCurrentUser({ ...user, role: employee.role });
-        } else {
-          setCurrentUser(user);
-        }
+        const merged = { ...user, role: employee?.role ?? user.role ?? 'viewer' };
+        setCurrentUser(merged);
+        setLoading(false);
+      }).catch(() => {
+        // Fallback to saved user
+        setCurrentUser(user);
+        setLoading(false);
       });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -57,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Get employee data to fetch role
       const employee = await fakeDb.employees.findByUserId(user.id);
-      const userData = { id: user.id, name: user.name, email: user.email, role: employee?.role || 'viewer' };
+      const userData = { id: user.id, name: user.name, email: user.email, role: employee?.role ?? user.role ?? 'viewer' };
       setCurrentUser(userData);
       localStorage.setItem("currentUser", JSON.stringify(userData));
 
@@ -109,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         fullName: userData.name,
         email: userData.email,
         baseSalary: 0,
+        role: 'cashier',
       });
 
       const userInfo = { id: user.id, name: user.name, email: user.email, role: 'cashier' };
