@@ -27,7 +27,7 @@ interface AppLayoutProps {
 }
 
 const AppLayout = ({ children }: AppLayoutProps) => {
-  const { logout, userRole, hasPermission } = useAuth();
+  const { logout } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -40,62 +40,49 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
 
-  // Navigation items with role-based permissions
-  const allNavItems = [
+  // Navigation items
+  const navItems = [
     {
       title: t("dashboard"),
       path: "/dashboard",
       icon: <Home className="w-5 h-5" />,
-      roles: ["admin", "manager", "cashier", "inventory_manager", "viewer"],
     },
     {
       title: t("products"),
       path: "/products",
       icon: <Package className="w-5 h-5" />,
-      roles: ["admin", "manager", "inventory_manager"],
     },
     {
       title: t("cashier"),
       path: "/cashier",
       icon: <ShoppingCart className="w-5 h-5" />,
-      roles: ["admin", "manager", "cashier"],
     },
     {
       title: t("sales"),
       path: "/sales",
       icon: <BarChart3 className="w-5 h-5" />,
-      roles: ["admin", "manager", "viewer"],
     },
     {
       title: "الموظفين",
       path: "/employees",
       icon: <Users className="w-5 h-5" />,
-      roles: ["admin", "manager"],
     },
     {
       title: "إحصائيات الموظفين",
       path: "/employee-stats",
       icon: <TrendingUp className="w-5 h-5" />,
-      roles: ["admin", "manager"],
     },
     {
       title: "المصروفات",
       path: "/expenses",
       icon: <DollarSign className="w-5 h-5" />,
-      roles: ["admin", "manager"],
     },
     {
       title: "الإعدادات",
       path: "/settings",
       icon: <SettingsIcon className="w-5 h-5" />,
-      roles: ["admin", "manager", "cashier", "inventory_manager", "viewer"],
     },
   ];
-
-  // Filter navigation items based on user role
-  const navItems = allNavItems.filter(item => 
-    userRole ? item.roles.includes(userRole) : false
-  );
 
   // Toggle dark mode
   const toggleTheme = () => {

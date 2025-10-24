@@ -8,7 +8,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useLang } from "../contexts/LangContext";
-import { fakeDb } from "@/lib/fakeDb";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,30 +17,6 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, isRTL } = useLang();
-  const [roleHint, setRoleHint] = useState<string | null>(null);
-  const roleLabels: Record<string, string> = {
-    admin: "مدير",
-    manager: "مدير فرع",
-    cashier: "كاشير",
-    inventory_manager: "مدير مخزون",
-    viewer: "مراقب",
-  };
-
-  const checkRoleHint = async () => {
-    try {
-      if (!email) { setRoleHint(null); return; }
-      const user = await fakeDb.users.findByEmail(email);
-      if (user) {
-        const emp = await fakeDb.employees.findByUserId(user.id);
-        const role = (emp?.role ?? user.role) as keyof typeof roleLabels | undefined;
-        setRoleHint(role ? roleLabels[role] : null);
-      } else {
-        setRoleHint(null);
-      }
-    } catch {
-      setRoleHint(null);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +61,6 @@ const Login = () => {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onBlur={checkRoleHint}
                   required
                   autoComplete="email"
                   dir="ltr"
@@ -110,11 +84,12 @@ const Login = () => {
                 {isLoading ? "جاري تسجيل الدخول..." : t("loginButton")}
               </Button>
 
-              {roleHint && (
-                <div className="text-center text-xs text-muted-foreground">
-                  سيتم تسجيل الدخول كـ: <span className="font-medium">{roleHint}</span>
-                </div>
-              )}
+              {/* Demo credentials */}
+              <div className="text-center text-sm text-muted-foreground">
+                <p>{t("demoCredentials")}</p>
+                <p>البريد الإلكتروني: admin@example.com</p>
+                <p>كلمة المرور: password</p>
+              </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">

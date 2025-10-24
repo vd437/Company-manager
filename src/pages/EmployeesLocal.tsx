@@ -181,27 +181,6 @@ const EmployeesLocal = () => {
         role: selectedEmployee.role,
       });
 
-      // Update localStorage currentUser if we're updating the currently logged in user
-      const currentUserStr = localStorage.getItem("currentUser");
-      if (currentUserStr) {
-        const currentUser = JSON.parse(currentUserStr);
-        if (currentUser.id === selectedEmployee.userId) {
-          const updatedUser = {
-            ...currentUser,
-            role: selectedEmployee.role,
-          };
-          localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-          
-          // Force page reload if user updated their own role
-          toast({
-            title: "تم التحديث بنجاح",
-            description: "سيتم تحديث الصفحة لتطبيق الصلاحيات الجديدة",
-          });
-          setTimeout(() => window.location.reload(), 1500);
-          return;
-        }
-      }
-
       toast({
         title: "تم التحديث بنجاح",
         description: "تم حفظ التغييرات",
@@ -220,18 +199,6 @@ const EmployeesLocal = () => {
   };
 
   const handleDeleteEmployee = async (id: number) => {
-    const employee = employees.find(e => e.id === id);
-    
-    // Protect admin user from deletion
-    if (employee?.userId === 1) {
-      toast({
-        title: "خطأ",
-        description: "لا يمكن حذف المدير الأساسي",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     if (!confirm("هل أنت متأكد من حذف هذا الموظف؟")) return;
 
     try {
@@ -427,48 +394,23 @@ const EmployeesLocal = () => {
               {employees.map((emp) => (
                 <div
                   key={emp.id}
-                  className={`p-3 rounded-lg transition-colors ${
+                  onClick={() => setSelectedEmployee(emp)}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedEmployee?.id === emp.id
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="cursor-pointer" onClick={() => setSelectedEmployee(emp)}>
+                    <Avatar>
                       <AvatarImage src={emp.avatarUrl} />
                       <AvatarFallback>{emp.fullName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 cursor-pointer" onClick={() => setSelectedEmployee(emp)}>
+                    <div className="flex-1">
                       <p className="font-medium">{emp.fullName}</p>
                       <p className="text-xs opacity-70">
                         {roleLabels[emp.role || "viewer"]?.split(" - ")[0] || "مراقب"}
                       </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedEmployee(emp);
-                        }}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      {emp.userId !== 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteEmployee(emp.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -481,16 +423,14 @@ const EmployeesLocal = () => {
             <Card className="lg:col-span-3">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>تفاصيل الموظف</CardTitle>
-                {selectedEmployee.userId !== 1 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteEmployee(selectedEmployee.id)}
-                  >
-                    <Trash2 className="ml-2 h-4 w-4" />
-                    حذف الموظف
-                  </Button>
-                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDeleteEmployee(selectedEmployee.id)}
+                >
+                  <Trash2 className="ml-2 h-4 w-4" />
+                  حذف الموظف
+                </Button>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="profile" className="w-full">
@@ -592,14 +532,6 @@ const EmployeesLocal = () => {
                   </TabsContent>
 
                   <TabsContent value="permissions" className="space-y-4">
-                    {selectedEmployee.userId === 1 && (
-                      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                          ⚠️ هذا هو حساب المدير الأساسي ولا يمكن تغيير صلاحياته
-                        </p>
-                      </div>
-                    )}
-                    
                     <div className="space-y-2">
                       <Label>
                         <Shield className="inline ml-2 h-4 w-4" />
@@ -613,7 +545,6 @@ const EmployeesLocal = () => {
                             role: value,
                           })
                         }
-                        disabled={selectedEmployee.userId === 1}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -641,7 +572,7 @@ const EmployeesLocal = () => {
 
                     <Button
                       onClick={handleUpdateEmployee}
-                      disabled={isLoading || selectedEmployee.userId === 1}
+                      disabled={isLoading}
                       className="w-full"
                     >
                       <Save className="ml-2 h-4 w-4" />

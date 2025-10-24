@@ -6,7 +6,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "manager" | "cashier" | "inventory_manager" | "viewer";
+  role: "admin" | "cashier";
   createdAt: string;
 }
 

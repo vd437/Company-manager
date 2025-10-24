@@ -17,7 +17,6 @@ import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import { LangProvider } from "./contexts/LangContext";
 import "./index.css";
 
@@ -45,25 +44,25 @@ function App() {
               <Route
                 path="/products"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager", "inventory_manager"]}>
+                  <ProtectedRoute>
                     <Products />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/cashier"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+                  <ProtectedRoute>
                     <Cashier />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/sales"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager", "viewer"]}>
+                  <ProtectedRoute>
                     <Sales />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route
@@ -77,33 +76,33 @@ function App() {
               <Route
                 path="/employees"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager"]}>
+                  <ProtectedRoute>
                     <EmployeesLocal />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/employee-stats"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager"]}>
+                  <ProtectedRoute>
                     <EmployeeStatsNew />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/expenses"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager"]}>
+                  <ProtectedRoute>
                     <ExpensesLocal />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/company-settings"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin", "manager"]}>
+                  <ProtectedRoute>
                     <CompanySettings />
-                  </RoleProtectedRoute>
+                  </ProtectedRoute>
                 }
               />
               <Route path="*" element={<NotFound />} />

@@ -4,15 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import { fakeDb } from "@/lib/fakeDb";
 
 interface AuthContextType {
-  currentUser: { id: number; name: string; email: string; role?: string } | null;
+  currentUser: { id: number; name: string; email: string } | null;
   isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (userData: { email: string; password: string; name: string }) => Promise<boolean>;
   isAdmin: () => boolean;
-  userRole: string | null;
-  hasPermission: (requiredRoles: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [currentUser, setCurrentUser] = useState<{ id: number; name: string; email: string; role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: number; name: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -29,20 +27,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Check for existing session in localStorage
     const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
-      const user = JSON.parse(savedUser);
-      // Get employee data to fetch role
-      fakeDb.employees.findByUserId(user.id).then(employee => {
-        const merged = { ...user, role: employee?.role ?? user.role ?? 'viewer' };
-        setCurrentUser(merged);
-        setLoading(false);
-      }).catch(() => {
-        // Fallback to saved user
-        setCurrentUser(user);
-        setLoading(false);
-      });
-    } else {
-      setLoading(false);
+      setCurrentUser(JSON.parse(savedUser));
     }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -58,9 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return false;
       }
 
-      // Get employee data to fetch role
-      const employee = await fakeDb.employees.findByUserId(user.id);
-      const userData = { id: user.id, name: user.name, email: user.email, role: employee?.role ?? user.role ?? 'viewer' };
+      const userData = { id: user.id, name: user.name, email: user.email };
       setCurrentUser(userData);
       localStorage.setItem("currentUser", JSON.stringify(userData));
 
@@ -112,10 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         fullName: userData.name,
         email: userData.email,
         baseSalary: 0,
-        role: 'cashier',
       });
 
-      const userInfo = { id: user.id, name: user.name, email: user.email, role: 'cashier' };
+      const userInfo = { id: user.id, name: user.name, email: user.email };
       setCurrentUser(userInfo);
       localStorage.setItem("currentUser", JSON.stringify(userInfo));
 
@@ -146,12 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const isAdmin = () => {
-    return currentUser?.role === "admin";
-  };
-
-  const hasPermission = (requiredRoles: string[]) => {
-    if (!currentUser?.role) return false;
-    return requiredRoles.includes(currentUser.role);
+    return currentUser?.email === "admin@example.com";
   };
 
   return (
@@ -164,8 +143,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         register,
         isAdmin,
-        userRole: currentUser?.role || null,
-        hasPermission,
       }}
     >
       {children}
